@@ -20,6 +20,8 @@
   "dependencies": {
     "@chainlink/contracts": "^0.4.1",
     "@openzeppelin/contracts": "^4.7.3",
-    "dotenv": "^16.0.2"
+    "@pinata/sdk": "^1.1.26",
+    "dotenv": "^16.0.2",
+    "path": "^0.12.7"
   }
 }
