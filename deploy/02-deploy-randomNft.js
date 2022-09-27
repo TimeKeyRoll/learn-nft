@@ -32,6 +32,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         subscriptionId = networkconfig[chainId].subscriptionId
     }
     log("....................................................................")
+
     await storeImages("imagesLocation")
 
     // const args = [
