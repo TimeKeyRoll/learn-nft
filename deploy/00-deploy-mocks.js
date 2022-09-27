@@ -1,3 +1,4 @@
+const { network } = require("hardhat")
 const { developmentChains } = require("../helper-hardhat-config")
 
 const BASE_FEE = ethers.utils.parseEther("0.25") //"0.25"link is the premimum. its the fees in link token.
