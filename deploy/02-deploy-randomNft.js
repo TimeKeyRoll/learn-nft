@@ -1,9 +1,24 @@
 const { network, ethers } = require("hardhat")
 const { developmentChains, networkconfig } = require("../helper-hardhat-config")
 const { verify } = require("../utils/verify")
-const { storeImages } = require("../utils/uploadToPinata")
+const {
+    storeImages,
+    storeTokenUriMetadata,
+} = require("../utils/uploadToPinata")
 
 const imagesLocation = "./images/randomNft"
+
+const metadataTemplate = {
+    name: "",
+    description: "",
+    images: "",
+    attributes: [
+        {
+            trait_type: "Cuteness",
+            vaue: 100,
+        },
+    ],
+}
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy, log } = deployments
@@ -19,7 +34,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
 
     let vrfCoordinatorV2Address, subscriptionId
 
-    if (chainId == 31337) {
+    if (developmentChains.includes(network.name)) {
         const vrfCoordinatorV2Mock = await ethers.getContract(
             "VRFCoordinatorV2Mock"
         )
@@ -33,16 +48,30 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     }
     log("....................................................................")
 
-    await storeImages("imagesLocation")
+    const args = [
+        vrfCoordinatorV2Address,
+        subscriptionId,
+        networkconfig[chainId].gasLane,
+        networkconfig[chainId].callbackGasLimit,
+        dogTokenUris,
+        networkconfig[chainId].mintFee,
+    ]
 
-    // const args = [
-    //     vrfCoordinatorV2Address,
-    //     subscriptionId,
-    //     networkconfig[chainId].gasLane,
-    //     networkconfig[chainId].callbackGasLimit,
-    //     //dogTokenUris,
-    //     networkconfig[chainId].mintFee,
-    // ]
+    const randomIpfsNft = await deploy("RandomIpfsNft", {
+        from: deployer,
+        args: args,
+        log: true,
+        waitConfirmations: network.config.blockConfirmations || 1,
+    })
+    log("---------------------------")
+
+    if (
+        !developmentChains.includes(network.name) &&
+        process.env.ETHERSCAN_API_KEY
+    ) {
+        log("Verifyin....!")
+        await verify(randomIpfsNft.address, args)
+    }
 }
 //upload our code to pinata
 
@@ -51,6 +80,31 @@ async function handleTokenUris() {
 
     //store the Image in IPFS
     //Store the METADATA in IPFS
+    const { responses: imageUploadResponses, files } = await storeImages(
+        imagesLocation
+    )
+    for (imageUploadResponsesIndex in imageUploadResponses) {
+        //create metadata
+        //upload metadata
+        let tokenUriMetadata = { ...metadataTemplate }
+
+        tokenUriMetadata.name = files[imageUploadResponsesIndex].replace(
+            ".png",
+            ""
+        )
+        tokenUriMetadata.description = `A Beautiful ${tokenUriMetadata.name} Horse!`
+
+        tokenUriMetadata.image = `ipfs://${imageUploadResponses[imageUploadResponsesIndex].IpfsHash}`
+        console.log(`Uploading ${tokenUriMetadata.name}......`)
+        //store the json to Pinata/IPFS
+
+        const metadataUploadResponse = await storeTokenUriMetadata(
+            tokenUriMetadata
+        )
+        tokenUris.push(`ipfs://${metadataUploadResponse.IpfsHash}`)
+    }
+    console.log("Token Uris Uploaded. They are : ")
+    console.log(tokenUris)
 
     return tokenUris
 }
