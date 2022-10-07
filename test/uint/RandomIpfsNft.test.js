@@ -79,7 +79,7 @@ const { basename } = require("path")
                                   tokenUri.toString().includes("ipfs://"),
                                   true
                               )
-                              assert.equal(tokenCounter.toString(), "1")
+                              assert.equal(tokenCounter.toString(), "2")
                               resolve()
                           } catch (e) {
                               console.log(e)
@@ -121,7 +121,7 @@ const { basename } = require("path")
                       await randomIpfsNft.getBreedFromModdedRng(77)
                   assert.equal(2, expectedValue)
               })
-              it.only("should revert if moddedRng > 99", async function () {
+              it("should revert if moddedRng > 99", async function () {
                   await expect(
                       randomIpfsNft.getBreedFromModdedRng(100)
                   ).to.be.revertedWithCustomError(

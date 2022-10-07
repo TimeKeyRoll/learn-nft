@@ -115,4 +115,4 @@ async function handleTokenUris() {
     return tokenUris
 }
 
-module.exports.tags = ["RandomIpfsNft", "custom"]
+module.exports.tags = ["RandomIpfsNft", "main"]
